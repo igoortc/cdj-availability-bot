@@ -29,3 +29,11 @@ test('Git-backed store survives a fresh checkout and refuses concurrent local ru
     process.env.STATE_DIR=fresh;assert.deepEqual((await new Store().load(30)).active,[a]);await assert.rejects(new Store().load(60));
   } finally {if(oldDir===undefined)delete process.env.STATE_DIR;else process.env.STATE_DIR=oldDir;if(oldGit===undefined)delete process.env.PERSIST_GIT;else process.env.PERSIST_GIT=oldGit;await rm(root,{recursive:true,force:true});}
 });
+
+import {rejectionReason} from '../src/telegram.js';
+test('Telegram diagnostics explain common setup mistakes without echoing unknown response text',()=>{
+ assert.match(rejectionReason(400,'Bad Request: chat not found'),/send \/start/);
+ assert.match(rejectionReason(403,"Forbidden: bots can't send messages to bots"),/your own user ID/);
+ assert.match(rejectionReason(401,'Unauthorized'),/token rejected/);
+ assert(!rejectionReason(400,'secret-token-value').includes('secret-token-value'));
+});
