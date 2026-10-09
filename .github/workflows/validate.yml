@@ -1,0 +1,29 @@
+name: Validate monitor
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'test/**'
+      - 'package*.json'
+      - 'tsconfig.json'
+      - '.github/workflows/**'
+permissions:
+  contents: read
+concurrency:
+  group: validate-monitor
+  cancel-in-progress: true
+jobs:
+  validate:
+    if: github.event.repository.private == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - run: npm test
+      - name: Live SavvyCal check without Telegram or state writes
+        run: node dist/src/main.js --dry-run
