@@ -1,0 +1,12 @@
+{
+  "name": "343labs-savvycal-monitor", "version": "1.0.0", "private": true, "type": "module",
+  "engines": {"node": ">=22"},
+  "scripts": {
+    "build": "tsc", "test": "npm run build && node --test dist/test/*.test.js",
+    "check": "npm run build && node --env-file-if-exists=.env dist/src/main.js --dry-run",
+    "monitor": "npm run build && node --env-file-if-exists=.env dist/src/main.js",
+    "telegram:test": "npm run build && node --env-file-if-exists=.env dist/src/main.js --test-telegram",
+    "telegram:chat-id": "npm run build && node --env-file-if-exists=.env dist/src/main.js --chat-id"
+  },
+  "devDependencies": {"@types/node": "^22.0.0", "typescript": "^5.9.0"}
+}

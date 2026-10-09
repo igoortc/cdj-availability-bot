@@ -1,0 +1,65 @@
+name: SavvyCal availability monitor
+on:
+  schedule:
+    - cron: '7 5,11,17,23 * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'monitor, dry-run, or telegram-test'
+        type: choice
+        options: [monitor, dry-run, telegram-test]
+        default: monitor
+permissions:
+  contents: write
+concurrency:
+  group: savvycal-monitor
+  cancel-in-progress: false
+jobs:
+  monitor:
+    # Private repositories are skipped before allocating a runner.
+    if: github.event.repository.private == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      STATE_DIR: ${{ github.workspace }}/.state
+      PERSIST_GIT: 'true'
+      DURATION_MINUTES: ${{ vars.DURATION_MINUTES || '30' }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      MODE: ${{ inputs.mode || 'monitor' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - run: npm test
+      - name: Load durable state branch
+        if: env.MODE != 'telegram-test'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin
+          if git show-ref --verify --quiet refs/remotes/origin/monitor-state; then
+            git worktree add .state monitor-state
+          else
+            git worktree add --detach .state
+            cd .state
+            git switch --orphan monitor-state
+            git rm -rf --ignore-unmatch .
+            git -c user.name='availability-monitor' -c user.email='monitor@users.noreply.github.com' commit --allow-empty -m 'Initialize monitor state'
+            git push origin HEAD:monitor-state
+            cd ..
+          fi
+          git -C .state config user.name availability-monitor
+          git -C .state config user.email monitor@users.noreply.github.com
+      - name: Check availability or send test
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$MODE" in
+            monitor) node dist/src/main.js ;;
+            dry-run) node dist/src/main.js --dry-run ;;
+            telegram-test) node dist/src/main.js --test-telegram ;;
+            *) exit 1 ;;
+          esac
