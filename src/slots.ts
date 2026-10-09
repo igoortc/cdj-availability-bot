@@ -41,12 +41,15 @@ export function bookingUrl(slot: Slot): string {
   const url = new URL(BOOKING); url.searchParams.set('d',String(slot.duration)); url.searchParams.set('from',dateInBerlin(new Date(slot.start))); return url.toString();
 }
 export function slotText(slot: Slot): string {
-  const date = new Intl.DateTimeFormat('en-US',{timeZone:ZONE,year:'numeric',month:'long',day:'numeric'}).format(new Date(slot.start));
-  const time = (s:string)=>new Intl.DateTimeFormat('en-GB',{timeZone:ZONE,hour:'2-digit',minute:'2-digit',timeZoneName:'shortOffset'}).format(new Date(s));
-  return `📅 ${date}\n🕒 ${time(slot.start)}–${time(slot.end)} (${ZONE})\n🔗 Book now: ${bookingUrl(slot)}`;
+  const start = new Date(slot.start);
+  const date = new Intl.DateTimeFormat('en-US',{timeZone:ZONE,weekday:'long',month:'long',day:'numeric'}).format(start);
+  const parts = new Intl.DateTimeFormat('en-US',{timeZone:ZONE,hour:'numeric',minute:'2-digit',hour12:true}).formatToParts(start);
+  const part = (type:string)=>parts.find(p=>p.type===type)?.value || '';
+  const time = `${part('hour')}${part('minute')==='00'?'':':'+part('minute')}${part('dayPeriod').toLowerCase()}`;
+  return `📅 ${date}\n\n🕒 ${time}\n\n🔗 Book now: ${bookingUrl(slot)}`;
 }
 export function messages(slots: Slot[]): {text:string; ids:string[]}[] {
-  const result: {text:string;ids:string[]}[] = []; const header='🎧 New 343 Labs CDJ slot available!\n\n';
+  const result: {text:string;ids:string[]}[] = []; const header='🎧 Yaaas! New CDJ slots available 😎\n\n';
   let text=header, ids:string[]=[];
   for (const slot of slots) {
     const line=slotText(slot)+'\n\n';

@@ -37,3 +37,17 @@ test('Telegram diagnostics explain common setup mistakes without echoing unknown
  assert.match(rejectionReason(401,'Unauthorized'),/token rejected/);
  assert(!rejectionReason(400,'secret-token-value').includes('secret-token-value'));
 });
+
+import {slotText} from '../src/slots.js';
+import {expired} from '../src/lifecycle.js';
+test('Berlin cutoff stops at midnight on November 20',()=>{
+ assert.equal(expired(new Date('2026-11-19T22:59:59.999Z')),false);
+ assert.equal(expired(new Date('2026-11-19T23:00:00Z')),true);
+ assert.equal(expired(new Date('2027-10-01T00:00:00Z')),true);
+});
+test('notification matches requested format, including half-hour slots',()=>{
+ const sunday={...a,start:'2026-10-11T14:00:00.000Z',duration:30};
+ assert.equal(slotText(sunday),'📅 Sunday, October 11\n\n🕒 4pm\n\n🔗 Book now: https://savvycal.com/343labsberlinCDJs/book?d=30&from=2026-10-11');
+ assert.match(slotText({...sunday,start:'2026-10-11T14:30:00.000Z'}),/4:30pm/);
+ assert.match(messages([sunday])[0]!.text,/^🎧 Yaaas! New CDJ slots available 😎/);
+});

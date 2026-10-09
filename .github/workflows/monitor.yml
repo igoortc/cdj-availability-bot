@@ -1,7 +1,8 @@
 name: SavvyCal availability monitor
 on:
   schedule:
-    - cron: '7 5,11,17,23 * * *'
+    - cron: '7 5,11,17,23 * 10 *'
+    - cron: '7 5,11,17,23 1-19 11 *'
   workflow_dispatch:
     inputs:
       mode:
@@ -11,6 +12,7 @@ on:
         default: monitor
 permissions:
   contents: write
+  actions: write
 concurrency:
   group: savvycal-monitor
   cancel-in-progress: false
@@ -28,14 +30,45 @@ jobs:
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       MODE: ${{ inputs.mode || 'monitor' }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Enforce Berlin cutoff and retire workflows
+        id: lifecycle
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPOSITORY: ${{ github.repository }}
+        shell: python
+        run: |
+          import datetime, json, os, urllib.request
+          cutoff = datetime.datetime(2026, 11, 19, 23, tzinfo=datetime.timezone.utc)
+          active = datetime.datetime.now(datetime.timezone.utc) < cutoff
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write('active=' + str(active).lower() + '\n')
+          if not active:
+              for workflow in ['validate.yml', 'monitor.yml']:
+                  url = 'https://api.github.com/repos/' + os.environ['GH_REPOSITORY'] + '/actions/workflows/' + workflow + '/disable'
+                  request = urllib.request.Request(url, data=b'', method='PUT', headers={
+                      'Authorization': 'Bearer ' + os.environ['GH_TOKEN'],
+                      'Accept': 'application/vnd.github+json',
+                      'X-GitHub-Api-Version': '2022-11-28'
+                  })
+                  try:
+                      with urllib.request.urlopen(request, timeout=20) as response:
+                          if response.status != 204:
+                              raise RuntimeError('Unexpected workflow-disable response')
+                  except Exception:
+                      raise RuntimeError('Cannot disable workflow; check Actions write permission. No availability or Telegram request was made.') from None
+              print('Cutoff reached. Both workflows disabled; no booking-page or Telegram requests made.')
+      - if: steps.lifecycle.outputs.active == 'true'
+        uses: actions/checkout@v4
+      - if: steps.lifecycle.outputs.active == 'true'
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: npm ci
-      - run: npm test
+      - if: steps.lifecycle.outputs.active == 'true'
+        run: npm ci
+      - if: steps.lifecycle.outputs.active == 'true'
+        run: npm test
       - name: Load durable state branch
-        if: env.MODE != 'telegram-test'
+        if: steps.lifecycle.outputs.active == 'true' && env.MODE != 'telegram-test'
         shell: bash
         run: |
           set -euo pipefail
@@ -54,6 +87,7 @@ jobs:
           git -C .state config user.name availability-monitor
           git -C .state config user.email monitor@users.noreply.github.com
       - name: Check availability or send test
+        if: steps.lifecycle.outputs.active == 'true'
         shell: bash
         run: |
           set -euo pipefail

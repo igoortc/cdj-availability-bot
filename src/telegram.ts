@@ -1,3 +1,4 @@
+import {expired} from './lifecycle.js';
 import {request} from './http.js';
 export class Rejected extends Error {}
 function token() {const t=process.env.TELEGRAM_BOT_TOKEN?.trim();if(!t || !/^\d+:[A-Za-z0-9_-]+$/.test(t))throw new Error('Set TELEGRAM_BOT_TOKEN');return t;}
@@ -34,6 +35,7 @@ export async function testConnection() {
   await send('🎧 343 Labs monitor test: Telegram is connected. This is a test, not an availability alert.');
 }
 export async function send(text:string) {
+  if (expired()) throw new Rejected('Monitor cutoff reached; no Telegram message sent');
   credentials();
   // Never log errors containing fetch URLs (the URL contains a credential).
   let res:Response;
