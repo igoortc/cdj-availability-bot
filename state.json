@@ -32,6 +32,9 @@
       "duration": 30
     }
   ],
-  "attempted": [],
+  "attempted": [
+    "Europe/Berlin|2026-10-11T14:00:00.000Z|2026-10-11T14:30:00.000Z",
+    "Europe/Berlin|2026-10-11T14:30:00.000Z|2026-10-11T15:00:00.000Z"
+  ],
   "uncertain": []
 }
