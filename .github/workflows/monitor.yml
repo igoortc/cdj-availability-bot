@@ -3,12 +3,16 @@ on:
   schedule:
     - cron: '7 5,11,17,23 * 10 *'
     - cron: '7 5,11,17,23 1-19 11 *'
+    - cron: '0 21 * 10 *'
+      timezone: Europe/Berlin
+    - cron: '0 21 1-19 11 *'
+      timezone: Europe/Berlin
   workflow_dispatch:
     inputs:
       mode:
         description: 'monitor, dry-run, or telegram-test'
         type: choice
-        options: [monitor, dry-run, telegram-test]
+        options: [monitor, dry-run, telegram-test, lab-monitor, lab-dry-run]
         default: monitor
 permissions:
   contents: write
@@ -28,7 +32,7 @@ jobs:
       DURATION_MINUTES: ${{ vars.DURATION_MINUTES || '30' }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-      MODE: ${{ inputs.mode || 'monitor' }}
+      MODE: ${{ inputs.mode || (startsWith(github.event.schedule, '0 21 ') && 'lab-monitor') || 'monitor' }}
     steps:
       - name: Enforce Berlin cutoff and retire workflows
         id: lifecycle
@@ -95,5 +99,7 @@ jobs:
             monitor) node dist/src/main.js ;;
             dry-run) node dist/src/main.js --dry-run ;;
             telegram-test) node dist/src/main.js --test-telegram ;;
+            lab-monitor) node dist/src/main.js --lab-monitor ;;
+            lab-dry-run) node dist/src/main.js --lab-dry-run ;;
             *) exit 1 ;;
           esac

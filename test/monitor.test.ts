@@ -47,7 +47,7 @@ test('Berlin cutoff stops at midnight on November 20',()=>{
 });
 test('notification matches requested format, including half-hour slots',()=>{
  const sunday={...a,start:'2026-10-11T14:00:00.000Z',duration:30};
- assert.equal(slotText(sunday),'📅 Sunday, October 11\n\n🕒 4pm\n\n🔗 Book now: https://savvycal.com/343labsberlinCDJs/book?d=30&from=2026-10-11');
+ assert.equal(slotText(sunday),'📅 Sunday, October 11\n🕒 4pm\n🔗 Book now: https://savvycal.com/343labsberlinCDJs/book?d=30&from=2026-10-11');
  assert.match(slotText({...sunday,start:'2026-10-11T14:30:00.000Z'}),/4:30pm/);
  assert.match(messages([sunday])[0]!.text,/^🎧 Yaaas! New CDJ slots available 😎/);
 });

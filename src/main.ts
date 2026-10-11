@@ -1,3 +1,4 @@
+import {checkLab} from './lab.js';
 import {expired} from './lifecycle.js';
 import {deliver} from './delivery.js';
 import {availability} from './savvycal.js';
@@ -7,7 +8,10 @@ import {credentials,send,chatIds,testConnection} from './telegram.js';
 async function main() {
   if (expired()) {console.log('Monitor retired: November 20, 2026 Berlin cutoff reached.');return;}
   const args=new Set(process.argv.slice(2));
-  if (args.size>1 || [...args].some(a=>!['--chat-id','--test-telegram','--dry-run'].includes(a))) throw new Error('Use one of --dry-run, --test-telegram, --chat-id, or no flags');
+  if (args.size>1 || [...args].some(a=>!['--chat-id','--test-telegram','--dry-run','--lab-monitor','--lab-baseline','--lab-dry-run'].includes(a))) throw new Error('Use one of --dry-run, --test-telegram, --chat-id, or no flags');
+  if(args.has('--lab-monitor'))return checkLab('monitor');
+  if(args.has('--lab-baseline'))return checkLab('baseline');
+  if(args.has('--lab-dry-run'))return checkLab('dry-run');
   if(args.has('--chat-id'))return chatIds();
   if(args.has('--test-telegram')) {await testConnection();console.log('Test message delivered.');return;}
   const duration=Number(process.env.DURATION_MINUTES||30);

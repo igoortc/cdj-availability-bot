@@ -24,11 +24,13 @@ export class Store {
     if (![...s.attempted,...s.uncertain].every(id=>typeof id==='string')) throw new Error('Corrupt delivery state');
     return s;
   }
-  async save(s:State) {
-    await writeFile(join(this.dir,'state.json.tmp'),JSON.stringify(s,null,2)+'\n',{mode:0o600});await rename(join(this.dir,'state.json.tmp'),join(this.dir,'state.json'));
+  async save(s:State) {return this.saveDocument('state.json',s);}
+  async saveDocument(name:string,s:unknown) {
+    if(!['state.json','lab-state.json'].includes(name))throw new Error('Invalid state filename');
+    await writeFile(join(this.dir,name+'.tmp'),JSON.stringify(s,null,2)+'\n',{mode:0o600});await rename(join(this.dir,name+'.tmp'),join(this.dir,name));
     if (process.env.PERSIST_GIT==='true') {
       try {
-        this.git(['add','state.json']);
+        this.git(['add',name]);
         if (!this.git(['diff','--cached','--name-only']).toString().trim()) return;
         this.git(['commit','-m','Update monitor state']);
         // No force push. Stop before Telegram if reservation cannot be pushed.

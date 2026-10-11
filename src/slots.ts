@@ -46,7 +46,7 @@ export function slotText(slot: Slot): string {
   const parts = new Intl.DateTimeFormat('en-US',{timeZone:ZONE,hour:'numeric',minute:'2-digit',hour12:true}).formatToParts(start);
   const part = (type:string)=>parts.find(p=>p.type===type)?.value || '';
   const time = `${part('hour')}${part('minute')==='00'?'':':'+part('minute')}${part('dayPeriod').toLowerCase()}`;
-  return `📅 ${date}\n\n🕒 ${time}\n\n🔗 Book now: ${bookingUrl(slot)}`;
+  return `📅 ${date}\n🕒 ${time}\n🔗 Book now: ${bookingUrl(slot)}`;
 }
 export function messages(slots: Slot[]): {text:string; ids:string[]}[] {
   const result: {text:string;ids:string[]}[] = []; const header='🎧 Yaaas! New CDJ slots available 😎\n\n';

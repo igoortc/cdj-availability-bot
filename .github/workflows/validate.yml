@@ -9,15 +9,18 @@ on:
       - 'tsconfig.json'
       - '.github/workflows/**'
 permissions:
-  contents: read
+  contents: write
 concurrency:
-  group: validate-monitor
-  cancel-in-progress: true
+  group: savvycal-monitor
+  cancel-in-progress: false
 jobs:
   validate:
     if: github.event.repository.private == false
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    env:
+      STATE_DIR: ${{ github.workspace }}/.state
+      PERSIST_GIT: 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -27,3 +30,23 @@ jobs:
       - run: npm test
       - name: Live SavvyCal check without Telegram or state writes
         run: node dist/src/main.js --dry-run
+      - name: Load durable state branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin
+          if git show-ref --verify --quiet refs/remotes/origin/monitor-state; then
+            git worktree add .state monitor-state
+          else
+            git worktree add --detach .state
+            cd .state
+            git switch --orphan monitor-state
+            git rm -rf --ignore-unmatch .
+            git -c user.name='availability-monitor' -c user.email='monitor@users.noreply.github.com' commit --allow-empty -m 'Initialize monitor state'
+            git push origin HEAD:monitor-state
+            cd ..
+          fi
+          git -C .state config user.name availability-monitor
+          git -C .state config user.email monitor@users.noreply.github.com
+      - name: Establish lab baseline silently
+        run: node dist/src/main.js --lab-baseline
