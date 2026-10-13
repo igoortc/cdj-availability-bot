@@ -89,7 +89,7 @@
   "pending": [
     {
       "text": "📅 Berlin lab schedule changed!\n\nWednesday, October 14\n15:00–17:00 · Berlin Lab\n\nThursday, October 15\n15:00–19:00 · Berlin Lab\n\nFriday, October 16\n12:00–17:00 · Berlin Lab\n\nSunday, October 18\n15:00–18:00 · Berlin Lab\n\nMonday, October 19\n15:00–18:00 · Berlin Lab\n\nTuesday, October 20\n15:00–18:00 · Berlin Lab\n🔗 https://sites.google.com/view/berlin-lab-calendar\nTimes in Europe/Berlin.",
-      "attempted": false
+      "attempted": true
     }
   ]
 }
