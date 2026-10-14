@@ -1,9 +1,9 @@
 name: SavvyCal availability monitor
 on:
   schedule:
-    - cron: '0 21 * 10 *'
+    - cron: '0 9,21 * 10 *'
       timezone: Europe/Berlin
-    - cron: '0 21 1-19 11 *'
+    - cron: '0 9,21 1-19 11 *'
       timezone: Europe/Berlin
     - cron: '7 0 20 11 *'
       timezone: Europe/Berlin
