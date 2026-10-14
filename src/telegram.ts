@@ -34,12 +34,12 @@ export async function testConnection() {
   if(/^[A-Za-z0-9_]+$/.test(data.result.username))console.log(`Token belongs to @${data.result.username}. Send /start to this exact bot in Telegram.`);
   await send('🎧 343 Labs monitor test: Telegram is connected. This is a test, not an availability alert.');
 }
-export async function send(text:string) {
+export async function send(text:string,format:'HTML'|'plain'='plain') {
   if (expired()) throw new Rejected('Monitor cutoff reached; no Telegram message sent');
   credentials();
   // Never log errors containing fetch URLs (the URL contains a credential).
   let res:Response;
-  try {res=await fetch(`https://api.telegram.org/bot${token()}/sendMessage`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:chatId(),text,link_preview_options:{is_disabled:true}}),signal:AbortSignal.timeout(20000)});} catch {throw new Error('Telegram delivery uncertain (network/timeout)');}
+  try {res=await fetch(`https://api.telegram.org/bot${token()}/sendMessage`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:chatId(),text,...(format==='HTML'?{parse_mode:'HTML'}:{}),link_preview_options:{is_disabled:true}}),signal:AbortSignal.timeout(20000)});} catch {throw new Error('Telegram delivery uncertain (network/timeout)');}
   let data:any;try {data=await res.json();}catch {throw new Error('Telegram delivery uncertain (invalid response)');}
   if (data.ok===false) throw rejected(res.status,data);
   if (!res.ok || data.ok!==true || !Number.isInteger(data.result?.message_id))throw new Error('Telegram delivery uncertain');

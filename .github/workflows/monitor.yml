@@ -1,19 +1,19 @@
 name: SavvyCal availability monitor
 on:
   schedule:
-    - cron: '7 5,11,17,23 * 10 *'
-    - cron: '7 5,11,17,23 1-19 11 *'
     - cron: '0 21 * 10 *'
       timezone: Europe/Berlin
     - cron: '0 21 1-19 11 *'
       timezone: Europe/Berlin
+    - cron: '7 0 20 11 *'
+      timezone: Europe/Berlin
   workflow_dispatch:
     inputs:
       mode:
-        description: 'monitor, dry-run, or telegram-test'
+        description: 'all runs both monitors; other modes run one check or test'
         type: choice
-        options: [monitor, dry-run, telegram-test, lab-monitor, lab-dry-run]
-        default: monitor
+        options: [all, monitor, dry-run, telegram-test, lab-monitor, lab-dry-run]
+        default: all
 permissions:
   contents: write
   actions: write
@@ -32,7 +32,7 @@ jobs:
       DURATION_MINUTES: ${{ vars.DURATION_MINUTES || '30' }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-      MODE: ${{ inputs.mode || (startsWith(github.event.schedule, '0 21 ') && 'lab-monitor') || 'monitor' }}
+      MODE: ${{ inputs.mode || 'all' }}
     steps:
       - name: Enforce Berlin cutoff and retire workflows
         id: lifecycle
@@ -96,6 +96,7 @@ jobs:
         run: |
           set -euo pipefail
           case "$MODE" in
+            all) node dist/src/main.js --all ;;
             monitor) node dist/src/main.js ;;
             dry-run) node dist/src/main.js --dry-run ;;
             telegram-test) node dist/src/main.js --test-telegram ;;

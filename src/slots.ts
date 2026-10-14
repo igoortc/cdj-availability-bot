@@ -38,23 +38,37 @@ export function newSlots(previous: Slot[], current: Slot[]): Slot[] {
   return [...new Map(current.filter(s=>!before.has(s.id)).map(s=>[s.id,s])).values()];
 }
 export function bookingUrl(slot: Slot): string {
-  const url = new URL(BOOKING); url.searchParams.set('d',String(slot.duration)); url.searchParams.set('from',dateInBerlin(new Date(slot.start))); return url.toString();
+  const url = new URL(BOOKING);url.searchParams.set('from',dateInBerlin(new Date(slot.start)));return url.toString();
 }
-export function slotText(slot: Slot): string {
-  const start = new Date(slot.start);
-  const date = new Intl.DateTimeFormat('en-US',{timeZone:ZONE,weekday:'long',month:'long',day:'numeric'}).format(start);
-  const parts = new Intl.DateTimeFormat('en-US',{timeZone:ZONE,hour:'numeric',minute:'2-digit',hour12:true}).formatToParts(start);
-  const part = (type:string)=>parts.find(p=>p.type===type)?.value || '';
-  const time = `${part('hour')}${part('minute')==='00'?'':':'+part('minute')}${part('dayPeriod').toLowerCase()}`;
-  return `📅 ${date}\n🕒 ${time}\n🔗 Book now: ${bookingUrl(slot)}`;
+export function clockTime(iso:string):string {
+  return new Intl.DateTimeFormat('en-GB',{timeZone:ZONE,hour:'2-digit',minute:'2-digit'}).format(new Date(iso));
 }
-export function messages(slots: Slot[]): {text:string; ids:string[]}[] {
-  const result: {text:string;ids:string[]}[] = []; const header='🎧 Yaaas! New CDJ slots available 😎\n\n';
-  let text=header, ids:string[]=[];
-  for (const slot of slots) {
-    const line=slotText(slot)+'\n\n';
-    if (text.length+line.length>3500 && ids.length) { result.push({text:text.trim(),ids}); text=header;ids=[]; }
-    text+=line; ids.push(slot.id);
+export function dayLabel(iso:string):string {
+  return new Intl.DateTimeFormat('en-US',{timeZone:ZONE,weekday:'long',month:'long',day:'numeric'}).format(new Date(iso));
+}
+export function dayBlock(slots:Slot[]):string {
+  const sorted=[...new Map(slots.map(s=>[s.start,s])).values()].sort((a,b)=>a.start.localeCompare(b.start));
+  const ranges:{first:Slot;last:Slot}[]=[];
+  for(const slot of sorted){
+    const range=ranges.at(-1);
+    if(range && range.last.end===slot.start)range.last=slot;
+    else ranges.push({first:slot,last:slot});
   }
-  if (ids.length) result.push({text:text.trim(),ids}); return result;
+  // Ranges describe available START times, matching the requested 15:00—16:30 example.
+  const times=ranges.map(r=>r.first.start===r.last.start?clockTime(r.first.start):`${clockTime(r.first.start)}—${clockTime(r.last.start)}`).join(', ');
+  const first=sorted[0];if(!first)return '';
+  return `<b>📅 ${dayLabel(first.start)}</b>\n🕒 ${times}\n🔗 Book now: ${bookingUrl(first)}`;
+}
+export function slotText(slot: Slot):string{return dayBlock([slot]);}
+export function messages(slots: Slot[]): {text:string; ids:string[]}[] {
+  const days=new Map<string,Slot[]>();
+  for(const slot of slots){const day=dateInBerlin(new Date(slot.start));days.set(day,[...(days.get(day)||[]),slot]);}
+  const result:{text:string;ids:string[]}[]=[];
+  const header='🎧 <b>Yaaas! New CDJ slots available</b> 😎\n\n';let text=header,ids:string[]=[];
+  for(const [,daySlots] of [...days].sort(([a],[b])=>a.localeCompare(b))){
+    const block=dayBlock(daySlots)+'\n\n';
+    if(text.length+block.length>3500 && ids.length){result.push({text:text.trimEnd(),ids});text=header;ids=[];}
+    text+=block;ids.push(...new Set(daySlots.map(s=>s.id)));
+  }
+  if(ids.length)result.push({text:text.trimEnd(),ids});return result;
 }

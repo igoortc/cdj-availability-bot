@@ -47,7 +47,16 @@ test('Berlin cutoff stops at midnight on November 20',()=>{
 });
 test('notification matches requested format, including half-hour slots',()=>{
  const sunday={...a,start:'2026-10-11T14:00:00.000Z',duration:30};
- assert.equal(slotText(sunday),'📅 Sunday, October 11\n🕒 4pm\n🔗 Book now: https://savvycal.com/343labsberlinCDJs/book?d=30&from=2026-10-11');
- assert.match(slotText({...sunday,start:'2026-10-11T14:30:00.000Z'}),/4:30pm/);
- assert.match(messages([sunday])[0]!.text,/^🎧 Yaaas! New CDJ slots available 😎/);
+ assert.equal(slotText(sunday),'<b>📅 Sunday, October 11</b>\n🕒 16:00\n🔗 Book now: https://savvycal.com/343labsberlinCDJs/book?from=2026-10-11');
+ assert.match(slotText({...sunday,start:'2026-10-11T14:30:00.000Z'}),/16:30/);
+ assert.match(messages([sunday])[0]!.text,/^🎧 <b>Yaaas! New CDJ slots available<\/b> 😎/);
+});
+
+test('day blocks merge consecutive starts, preserve gaps and group only the new slot IDs',()=>{
+ const make=(day:string,time:string):Slot=>{const start=`2026-10-${day}T${time}:00.000Z`;const end=new Date(Date.parse(start)+30*60000).toISOString();return {id:start,start,end,duration:30};};
+ const slots=[make('13','13:00'),make('13','13:30'),make('13','14:00'),make('13','14:30'),make('14','13:00'),make('14','13:30'),make('14','15:00')];
+ const output=messages(slots);assert.equal(output.length,1);
+ assert.match(output[0]!.text,/15:00—16:30/);assert.match(output[0]!.text,/15:00—15:30, 17:00/);
+ assert.equal((output[0]!.text.match(/Tuesday, October 13/g)||[]).length,1);
+ assert(!output[0]!.text.includes('d=30'));assert.deepEqual(output[0]!.ids,slots.map(s=>s.id));
 });

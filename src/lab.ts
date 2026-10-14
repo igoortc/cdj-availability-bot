@@ -1,6 +1,6 @@
 import ICAL from 'ical.js';
 import {request} from './http.js';
-import {dateInBerlin,addDays,midnight,ZONE} from './slots.js';
+import {dateInBerlin,addDays,midnight,ZONE,dayLabel,clockTime} from './slots.js';
 import {Store} from './state.js';
 import {credentials,send,Rejected} from './telegram.js';
 import {readFile} from 'node:fs/promises';
@@ -53,18 +53,20 @@ export async function labSnapshot(now=new Date()):Promise<LabSnapshot>{
   const text=await(await request(LAB_FEED)).text();return {from,until,events:labEvents(text,from,until)};
 }
 export function labMessages(events:LabEvent[]):string[]{
-  const header='📅 Berlin lab schedule changed!\n\n';const link='\n🔗 '+LAB_PAGE;let text=header;const chunks:string[]=[];
-  for(const e of events){
-    const date=new Intl.DateTimeFormat('en-US',{timeZone:ZONE,weekday:'long',month:'long',day:'numeric'}).format(new Date(e.start));
-    const time=(s:string)=>new Intl.DateTimeFormat('en-GB',{timeZone:ZONE,hour:'2-digit',minute:'2-digit'}).format(new Date(s));
-    const line=`${date}\n${time(e.start)}–${time(e.end)} · ${e.title}\n\n`;
-    if(text.length+line.length+link.length>3500){chunks.push(text.trimEnd()+link);text=header;}
-    text+=line;
+  const header='<b>🪩 Berlin lab schedule changed! ✨</b>\n\n',link='\n\n🔗 '+LAB_PAGE;
+  const days=new Map<string,LabEvent[]>();
+  for(const event of events){const key=dateInBerlin(new Date(event.start));days.set(key,[...(days.get(key)||[]),event]);}
+  let text=header;const chunks:string[]=[];
+  for(const [,day] of [...days].sort(([a],[b])=>a.localeCompare(b))){
+    const times=[...new Set(day.sort((a,b)=>a.start.localeCompare(b.start)).map(e=>`${clockTime(e.start)}–${clockTime(e.end)}`))].join(', ');
+    const block=`<b>${dayLabel(day[0]!.start)}</b>\n${times}\n\n`;
+    if(text.length+block.length+link.length>3500 && text!==header){chunks.push(text.trimEnd()+link);text=header;}
+    text+=block;
   }
-  if(!events.length)text+='No lab sessions scheduled in the coming seven days.\n';
-  chunks.push(text.trimEnd()+link+'\nTimes in Europe/Berlin.');return chunks;
+  if(!events.length)text+='No lab sessions scheduled this week.';
+  chunks.push(text.trimEnd()+link);return chunks;
 }
-interface LabState {version:1;baseline:LabSnapshot;pending:{text:string;attempted:boolean}[]}
+interface LabState {version:1;baseline:LabSnapshot;pending:{text:string;attempted:boolean;html?:boolean}[]}
 export async function checkLab(mode:'monitor'|'baseline'|'dry-run'){
   const store=new Store();if(mode==='dry-run'){const s=await labSnapshot();console.log(JSON.stringify(visible(s,s.from,midnight(addDays(dateInBerlin(new Date()),7))),null,2));return;}
   await store.lock();
@@ -79,13 +81,13 @@ export async function checkLab(mode:'monitor'|'baseline'|'dry-run'){
     if(!state){state={version:1,baseline:current,pending:[]};await store.saveDocument('lab-state.json',state);console.log('Lab baseline established silently.');return;}
     if(state.pending.some(p=>p.attempted))throw new Error('Uncertain lab delivery: review lab-state.json before retrying; no duplicate sent');
     if(!state.pending.length){
-      if(scheduleChanged(state.baseline,current,until))state.pending=labMessages(visible(current,current.from,until)).map(text=>({text,attempted:false}));
+      if(scheduleChanged(state.baseline,current,until))state.pending=labMessages(visible(current,current.from,until)).map(text=>({text,attempted:false,html:true}));
       else console.log('Lab schedule unchanged; no message.');
       state.baseline=current;await store.saveDocument('lab-state.json',state);
     }
     while(state.pending.length){
       const message=state.pending[0]!;message.attempted=true;await store.saveDocument('lab-state.json',state);
-      try{await send(message.text);}catch(err){if(err instanceof Rejected){message.attempted=false;await store.saveDocument('lab-state.json',state);}throw err;}
+      try{await send(message.text,message.html?'HTML':'plain');}catch(err){if(err instanceof Rejected){message.attempted=false;await store.saveDocument('lab-state.json',state);}throw err;}
       state.pending.shift();await store.saveDocument('lab-state.json',state);console.log('Lab schedule change message sent.');
     }
   }finally{await store.unlock();}

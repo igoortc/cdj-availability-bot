@@ -1,5 +1,5 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';
-import {labEvents,scheduleChanged,type LabSnapshot} from '../src/lab.js';
+import {labEvents,labMessages,scheduleChanged,type LabSnapshot} from '../src/lab.js';
 const wrap=(events:string)=>`BEGIN:VCALENDAR\r\nVERSION:2.0\r\n${events}\r\nEND:VCALENDAR\r\n`;
 const event=(id:string,start:string,end:string,extra='')=>`BEGIN:VEVENT\r\nUID:${id}\r\nDTSTART:${start}\r\nDTEND:${end}\r\nSUMMARY:Berlin Lab\r\n${extra}\r\nEND:VEVENT`;
 const from='2026-10-11T00:00:00.000Z',until='2026-11-10T00:00:00.000Z';
@@ -29,4 +29,11 @@ test('Berlin recurring sessions retain local time across DST',()=>{
  const recurring=`BEGIN:VEVENT\r\nUID:berlin\r\nDTSTART;TZID=Europe/Berlin:20261024T100000\r\nDTEND;TZID=Europe/Berlin:20261024T120000\r\nRRULE:FREQ=WEEKLY;COUNT=2\r\nSUMMARY:Berlin Lab\r\nEND:VEVENT`;
  const events=labEvents(wrap(zone+'\r\n'+recurring),from,until);
  assert.equal(events[0]!.start,'2026-10-24T08:00:00.000Z');assert.equal(events[1]!.start,'2026-10-31T09:00:00.000Z');
+});
+
+test('lab alerts use bold day headings and omit session titles and timezone footer',()=>{
+ const [text]=labMessages([{start:'2026-10-14T13:00:00.000Z',end:'2026-10-14T15:00:00.000Z',title:'Berlin Lab'}]);
+ assert.match(text!,/^<b>🪩 Berlin lab schedule changed! ✨<\/b>/);
+ assert.match(text!,/<b>Wednesday, October 14<\/b>\n15:00–17:00/);
+ assert(!text!.includes(' · '));assert(!text!.includes('Times in'));assert.match(text!,/\n\n🔗 https:/);
 });
