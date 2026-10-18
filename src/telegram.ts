@@ -50,3 +50,16 @@ export async function chatIds() {
   const chats=new Map();for(const update of data.result){const c=update.message?.chat||update.channel_post?.chat;if(c)chats.set(String(c.id),{id:c.id,type:c.type});}
   console.log([...chats.values()]);if(!chats.size)console.log('Send /start to your bot in Telegram, then try again.');
 }
+
+export function configuredPrivateChat():string {
+  const id=chatId();if(!/^[1-9]\d*$/.test(id))throw new Error('Day commands require TELEGRAM_CHAT_ID to be your private numeric user/chat ID');return id;
+}
+export async function getUpdates(offset:number):Promise<import('./commands.js').Update[]> {
+  let response:Response,data:any;
+  try{
+    response=await request(`https://api.telegram.org/bot${token()}/getUpdates`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({offset,limit:100,timeout:0,allowed_updates:['message']})});
+    data=await response.json();
+  }catch{throw new Error('Telegram command polling failed; check network, token, or an existing webhook/other polling client');}
+  if(data.ok!==true || !Array.isArray(data.result) || !data.result.every((u:any)=>Number.isSafeInteger(u?.update_id)))throw new Error('Unexpected Telegram updates response');
+  return data.result;
+}

@@ -1,9 +1,16 @@
 name: SavvyCal availability monitor
 on:
+  push:
+    branches: [main]
+    paths: ['src/commands.ts']
   schedule:
     - cron: '0 9,21 * 10 *'
       timezone: Europe/Berlin
     - cron: '0 9,21 1-19 11 *'
+      timezone: Europe/Berlin
+    - cron: '2-57/5 * * 10 *'
+      timezone: Europe/Berlin
+    - cron: '2-57/5 * 1-19 11 *'
       timezone: Europe/Berlin
     - cron: '7 0 20 11 *'
       timezone: Europe/Berlin
@@ -12,7 +19,7 @@ on:
       mode:
         description: 'all runs both monitors; other modes run one check or test'
         type: choice
-        options: [all, monitor, dry-run, telegram-test, lab-monitor, lab-dry-run]
+        options: [all, monitor, dry-run, telegram-test, lab-monitor, lab-dry-run, commands]
         default: all
 permissions:
   contents: write
@@ -32,7 +39,7 @@ jobs:
       DURATION_MINUTES: ${{ vars.DURATION_MINUTES || '30' }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-      MODE: ${{ inputs.mode || 'all' }}
+      MODE: ${{ inputs.mode || ((github.event_name == 'push' || startsWith(github.event.schedule, '2-57/5 ')) && 'commands') || 'all' }}
     steps:
       - name: Enforce Berlin cutoff and retire workflows
         id: lifecycle
@@ -69,8 +76,10 @@ jobs:
           node-version: '22'
       - if: steps.lifecycle.outputs.active == 'true'
         run: npm ci
-      - if: steps.lifecycle.outputs.active == 'true'
+      - if: steps.lifecycle.outputs.active == 'true' && env.MODE != 'commands'
         run: npm test
+      - if: steps.lifecycle.outputs.active == 'true' && env.MODE == 'commands'
+        run: npm run build
       - name: Load durable state branch
         if: steps.lifecycle.outputs.active == 'true' && env.MODE != 'telegram-test'
         shell: bash
@@ -96,6 +105,7 @@ jobs:
         run: |
           set -euo pipefail
           case "$MODE" in
+            commands) node dist/src/main.js --commands ;;
             all) node dist/src/main.js --all ;;
             monitor) node dist/src/main.js ;;
             dry-run) node dist/src/main.js --dry-run ;;
