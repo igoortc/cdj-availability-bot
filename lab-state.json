@@ -154,7 +154,7 @@
   "pending": [
     {
       "text": "<b>🪩 Berlin lab schedule changed! ✨</b>\n\n<b>Wednesday, November 4</b>\n17:30–18:00\n\n<b>Thursday, November 5</b>\n12:00–15:30, 17:30–19:00\n\n<b>Friday, November 6</b>\n14:45–18:00\n\n<b>Sunday, November 8</b>\n15:00–18:00\n\n<b>Monday, November 9</b>\n12:00–15:30, 17:30–18:00\n\n<b>Tuesday, November 10</b>\n17:30–18:00\n\n🔗 https://sites.google.com/view/berlin-lab-calendar",
-      "attempted": false,
+      "attempted": true,
       "html": true
     }
   ]
