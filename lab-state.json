@@ -1,17 +1,17 @@
 {
   "version": 1,
   "baseline": {
-    "from": "2026-11-02T23:00:00.000Z",
-    "until": "2026-12-02T23:00:00.000Z",
+    "from": "2026-11-03T23:00:00.000Z",
+    "until": "2026-12-03T23:00:00.000Z",
     "events": [
-      {
-        "start": "2026-11-03T16:30:00.000Z",
-        "end": "2026-11-03T17:00:00.000Z",
-        "title": "Berlin Lab"
-      },
       {
         "start": "2026-11-04T16:30:00.000Z",
         "end": "2026-11-04T17:00:00.000Z",
+        "title": "Berlin Lab"
+      },
+      {
+        "start": "2026-11-05T11:00:00.000Z",
+        "end": "2026-11-05T14:30:00.000Z",
         "title": "Berlin Lab"
       },
       {
@@ -30,6 +30,11 @@
         "title": "Berlin Lab"
       },
       {
+        "start": "2026-11-09T11:00:00.000Z",
+        "end": "2026-11-09T14:30:00.000Z",
+        "title": "Berlin Lab"
+      },
+      {
         "start": "2026-11-09T16:30:00.000Z",
         "end": "2026-11-09T17:00:00.000Z",
         "title": "Berlin Lab"
@@ -42,6 +47,11 @@
       {
         "start": "2026-11-11T16:30:00.000Z",
         "end": "2026-11-11T17:00:00.000Z",
+        "title": "Berlin Lab"
+      },
+      {
+        "start": "2026-11-12T11:00:00.000Z",
+        "end": "2026-11-12T14:30:00.000Z",
         "title": "Berlin Lab"
       },
       {
@@ -60,6 +70,11 @@
         "title": "Berlin Lab"
       },
       {
+        "start": "2026-11-16T11:00:00.000Z",
+        "end": "2026-11-16T14:30:00.000Z",
+        "title": "Berlin Lab"
+      },
+      {
         "start": "2026-11-16T16:30:00.000Z",
         "end": "2026-11-16T17:00:00.000Z",
         "title": "Berlin Lab"
@@ -72,6 +87,11 @@
       {
         "start": "2026-11-18T16:30:00.000Z",
         "end": "2026-11-18T17:00:00.000Z",
+        "title": "Berlin Lab"
+      },
+      {
+        "start": "2026-11-19T11:00:00.000Z",
+        "end": "2026-11-19T14:30:00.000Z",
         "title": "Berlin Lab"
       },
       {
@@ -90,6 +110,11 @@
         "title": "Berlin Lab"
       },
       {
+        "start": "2026-11-23T11:00:00.000Z",
+        "end": "2026-11-23T14:30:00.000Z",
+        "title": "Berlin Lab"
+      },
+      {
         "start": "2026-11-23T16:30:00.000Z",
         "end": "2026-11-23T17:00:00.000Z",
         "title": "Berlin Lab"
@@ -102,6 +127,11 @@
       {
         "start": "2026-11-25T16:30:00.000Z",
         "end": "2026-11-25T17:00:00.000Z",
+        "title": "Berlin Lab"
+      },
+      {
+        "start": "2026-11-26T11:00:00.000Z",
+        "end": "2026-11-26T14:30:00.000Z",
         "title": "Berlin Lab"
       },
       {
@@ -121,5 +151,11 @@
       }
     ]
   },
-  "pending": []
+  "pending": [
+    {
+      "text": "<b>🪩 Berlin lab schedule changed! ✨</b>\n\n<b>Wednesday, November 4</b>\n17:30–18:00\n\n<b>Thursday, November 5</b>\n12:00–15:30, 17:30–19:00\n\n<b>Friday, November 6</b>\n14:45–18:00\n\n<b>Sunday, November 8</b>\n15:00–18:00\n\n<b>Monday, November 9</b>\n12:00–15:30, 17:30–18:00\n\n<b>Tuesday, November 10</b>\n17:30–18:00\n\n🔗 https://sites.google.com/view/berlin-lab-calendar",
+      "attempted": false,
+      "html": true
+    }
+  ]
 }
