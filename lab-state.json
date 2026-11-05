@@ -1,21 +1,16 @@
 {
   "version": 1,
   "baseline": {
-    "from": "2026-11-03T23:00:00.000Z",
-    "until": "2026-12-03T23:00:00.000Z",
+    "from": "2026-11-04T23:00:00.000Z",
+    "until": "2026-12-04T23:00:00.000Z",
     "events": [
-      {
-        "start": "2026-11-04T16:30:00.000Z",
-        "end": "2026-11-04T17:00:00.000Z",
-        "title": "Berlin Lab"
-      },
       {
         "start": "2026-11-05T11:00:00.000Z",
         "end": "2026-11-05T14:30:00.000Z",
         "title": "Berlin Lab"
       },
       {
-        "start": "2026-11-05T16:30:00.000Z",
+        "start": "2026-11-05T17:00:00.000Z",
         "end": "2026-11-05T18:00:00.000Z",
         "title": "Berlin Lab"
       },
@@ -148,8 +143,19 @@
         "start": "2026-11-29T14:00:00.000Z",
         "end": "2026-11-29T17:00:00.000Z",
         "title": "Berlin Lab"
+      },
+      {
+        "start": "2026-12-04T13:45:00.000Z",
+        "end": "2026-12-04T17:00:00.000Z",
+        "title": "Berlin Lab"
       }
     ]
   },
-  "pending": []
+  "pending": [
+    {
+      "text": "<b>🪩 Berlin lab schedule changed! ✨</b>\n\n<b>Thursday, November 5</b>\n12:00–15:30, 18:00–19:00\n\n<b>Friday, November 6</b>\n14:45–18:00\n\n<b>Sunday, November 8</b>\n15:00–18:00\n\n<b>Monday, November 9</b>\n12:00–15:30, 17:30–18:00\n\n<b>Tuesday, November 10</b>\n17:30–18:00\n\n<b>Wednesday, November 11</b>\n17:30–18:00\n\n🔗 https://sites.google.com/view/berlin-lab-calendar",
+      "attempted": false,
+      "html": true
+    }
+  ]
 }
