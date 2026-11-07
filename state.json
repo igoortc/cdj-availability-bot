@@ -3,14 +3,8 @@
   "target": "https://savvycal.com/343labsberlinCDJs/book",
   "duration": 30,
   "zone": "Europe/Berlin",
-  "lastSuccess": "2026-11-06T23:51:11.222Z",
+  "lastSuccess": "2026-11-07T14:26:27.479Z",
   "active": [
-    {
-      "id": "Europe/Berlin|2026-11-09T16:30:00.000Z|2026-11-09T17:00:00.000Z",
-      "start": "2026-11-09T16:30:00.000Z",
-      "end": "2026-11-09T17:00:00.000Z",
-      "duration": 30
-    },
     {
       "id": "Europe/Berlin|2026-11-10T14:00:00.000Z|2026-11-10T14:30:00.000Z",
       "start": "2026-11-10T14:00:00.000Z",
@@ -80,7 +74,6 @@
   ],
   "pending": [],
   "attempted": [
-    "Europe/Berlin|2026-11-09T16:30:00.000Z|2026-11-09T17:00:00.000Z",
     "Europe/Berlin|2026-11-10T14:00:00.000Z|2026-11-10T14:30:00.000Z",
     "Europe/Berlin|2026-11-10T16:30:00.000Z|2026-11-10T17:00:00.000Z",
     "Europe/Berlin|2026-11-11T14:00:00.000Z|2026-11-11T14:30:00.000Z",
