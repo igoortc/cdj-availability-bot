@@ -6,5 +6,20 @@
   },
   "pending": [],
   "attempted": false,
-  "initialized": true
+  "initialized": true,
+  "listingLows": {
+    "djtechnik": 184252,
+    "recordcase": 184252,
+    "elevator": 193000,
+    "rockshop": 194900,
+    "prolighting": 195300,
+    "session": 199900,
+    "musikproduktiv": 199900,
+    "korn": 199900,
+    "woodbrass": 209800,
+    "elcotec": 209895,
+    "soundium": 209900,
+    "deejayhouse": 211500,
+    "deejayhouse-flightcase": 226500
+  }
 }
