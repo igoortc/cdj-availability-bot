@@ -1,0 +1,104 @@
+{
+  "version": 1,
+  "lows": {
+    "standalone": 184252,
+    "case": 211500
+  },
+  "pending": [
+    {
+      "id": "djtechnik",
+      "store": "DJ-Technik",
+      "url": "https://www.dj-technik.de/pioneer-dj-xdj-rx3-all-in-one-dj-system",
+      "kind": "standalone",
+      "cents": 184252
+    },
+    {
+      "id": "recordcase",
+      "store": "Recordcase",
+      "url": "https://www.recordcase.de/pioneer-dj-xdj-rx3-standard",
+      "kind": "standalone",
+      "cents": 184252
+    },
+    {
+      "id": "elevator",
+      "store": "Elevator",
+      "url": "https://www.elevator.de/pioneer-dj-xdj-rx3.html",
+      "kind": "standalone",
+      "cents": 193000
+    },
+    {
+      "id": "rockshop",
+      "store": "Rock Shop",
+      "url": "https://www.rockshop.de/pioneer-xdj-rx3",
+      "kind": "standalone",
+      "cents": 194900
+    },
+    {
+      "id": "prolighting",
+      "store": "Pro Lighting",
+      "url": "https://www.prolighting.de/de/dj-equipment/dj-controller/pioneer-xdj-rx3-2-kanal-performance-all-in-one-dj-system-schwarz.html",
+      "kind": "standalone",
+      "cents": 195300
+    },
+    {
+      "id": "musikproduktiv",
+      "store": "Musik Produktiv",
+      "url": "https://www.musik-produktiv.de/products/pioneer-dj-xdj-rx3/",
+      "kind": "standalone",
+      "cents": 199900
+    },
+    {
+      "id": "session",
+      "store": "session",
+      "url": "https://www.session.de/products/pioneer-dj-xdj-rx3/",
+      "kind": "standalone",
+      "cents": 199900
+    },
+    {
+      "id": "korn",
+      "store": "Musikhaus Korn",
+      "url": "https://www.musikhaus-korn.de/de/pioneer-dj-xdj-rx3-dj-controller/pd/190855",
+      "kind": "standalone",
+      "cents": 199900
+    },
+    {
+      "id": "woodbrass",
+      "store": "Woodbrass",
+      "url": "https://woodbrass.de/products/pioneer-dj-xdj-rx3-354925",
+      "kind": "standalone",
+      "cents": 209800
+    },
+    {
+      "id": "elcotec",
+      "store": "Elcotec",
+      "url": "https://www.elcotec-electronic.de/Pioneer-XDJ-RX3.html",
+      "kind": "standalone",
+      "cents": 209895
+    },
+    {
+      "id": "soundium",
+      "store": "Soundium",
+      "url": "https://soundiumstore.de/products/pioneer-xdj-rx3",
+      "kind": "standalone",
+      "cents": 209900
+    },
+    {
+      "id": "deejayhouse",
+      "store": "Deejay-House",
+      "url": "https://www.deejay-house.de/Pioneer-DJ-XDJ-RX3-inkl-DCJ-RX3-Bag",
+      "kind": "case",
+      "cents": 211500,
+      "label": "Pioneer protective bag"
+    },
+    {
+      "id": "deejayhouse-flightcase",
+      "store": "Deejay-House",
+      "url": "https://www.deejay-house.de/Pioneer-DJ-XDJ-RX3-Zomo-Flightcase-P-XDJ-RX3-Plus-NSE",
+      "kind": "case",
+      "cents": 226500,
+      "label": "Zomo flight case"
+    }
+  ],
+  "attempted": true,
+  "initialized": true
+}
