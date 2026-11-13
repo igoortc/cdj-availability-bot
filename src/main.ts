@@ -1,3 +1,4 @@
+import {checkPrices} from './prices.js';
 import {pollCommands} from './commands.js';
 import {checkLab} from './lab.js';
 import {expired} from './lifecycle.js';
@@ -7,6 +8,8 @@ import {slotText,newSlots} from './slots.js';
 import {Store,reconcile} from './state.js';
 import {credentials,send,chatIds,testConnection} from './telegram.js';
 async function main(args=new Set(process.argv.slice(2))) {
+  if(args.size===1 && args.has('--prices'))return checkPrices();
+  if(args.size===1 && args.has('--prices-dry-run'))return checkPrices(true);
   if (expired()) {console.log('Monitor retired: November 20, 2026 Berlin cutoff reached.');return;}
 
   if (args.size>1 || [...args].some(a=>!['--chat-id','--test-telegram','--dry-run','--lab-monitor','--lab-baseline','--lab-dry-run','--all','--commands'].includes(a))) throw new Error('Use one of --dry-run, --test-telegram, --chat-id, or no flags');

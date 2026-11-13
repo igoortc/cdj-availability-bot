@@ -11,6 +11,7 @@ export function reconcile(state:State,current:Slot[],now:Date):State {
   return {...state,active:current,pending,attempted:state.attempted.filter(id=>active.has(id)),lastSuccess:now.toISOString()};
 }
 export class Store {
+  constructor(private branch:'monitor-state'|'rx3-state'='monitor-state') {}
   dir=resolve(process.env.STATE_DIR||'.state');
   git=(args:string[])=>execFileSync('git',args,{cwd:this.dir,stdio:'pipe',timeout:30000});
   async lock() {await mkdir(this.dir,{recursive:true});try {await mkdir(join(this.dir,'.monitor-lock'));} catch {throw new Error('State directory locked; another run or stale .monitor-lock exists');}}
@@ -26,7 +27,7 @@ export class Store {
   }
   async save(s:State) {return this.saveDocument('state.json',s);}
   async saveDocument(name:string,s:unknown) {
-    if(!['state.json','lab-state.json','commands-state.json'].includes(name))throw new Error('Invalid state filename');
+    if(!['state.json','lab-state.json','commands-state.json','rx3-state.json'].includes(name))throw new Error('Invalid state filename');
     await writeFile(join(this.dir,name+'.tmp'),JSON.stringify(s,null,2)+'\n',{mode:0o600});await rename(join(this.dir,name+'.tmp'),join(this.dir,name));
     if (process.env.PERSIST_GIT==='true') {
       try {
@@ -34,7 +35,7 @@ export class Store {
         if (!this.git(['diff','--cached','--name-only']).toString().trim()) return;
         this.git(['commit','-m','Update monitor state']);
         // No force push. Stop before Telegram if reservation cannot be pushed.
-        this.git(['push','origin','HEAD:monitor-state']);
+        this.git(['push','origin','HEAD:'+this.branch]);
       } catch {throw new Error('State persistence failed; no further Telegram requests will be made. Inspect state branch/push permissions.');}
     }
   }

@@ -1,0 +1,96 @@
+name: XDJ-RX3 price tracker
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/rx3-prices.yml', 'src/prices.ts']
+  schedule:
+    - cron: '7 9,21 1-26 11 *'
+      timezone: Europe/Berlin
+    - cron: '7 */2 27-30 11 *'
+      timezone: Europe/Berlin
+    - cron: '7 0 1 12 *'
+      timezone: Europe/Berlin
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Read retailer pages without state changes or Telegram alerts
+        type: boolean
+        default: false
+permissions:
+  contents: write
+  actions: write
+concurrency:
+  group: rx3-price-tracker
+  cancel-in-progress: false
+jobs:
+  prices:
+    if: github.event.repository.private == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      STATE_DIR: ${{ github.workspace }}/.price-state
+      PERSIST_GIT: 'true'
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      DRY_RUN: ${{ inputs.dry_run || false }}
+    steps:
+      - name: Enforce November cutoff
+        id: lifecycle
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPOSITORY: ${{ github.repository }}
+        shell: python
+        run: |
+          import datetime, os, urllib.request
+          cutoff = datetime.datetime(2026, 11, 30, 23, tzinfo=datetime.timezone.utc)
+          active = datetime.datetime.now(datetime.timezone.utc) < cutoff
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write('active=' + str(active).lower() + '\n')
+          if not active:
+              url = 'https://api.github.com/repos/' + os.environ['GH_REPOSITORY'] + '/actions/workflows/rx3-prices.yml/disable'
+              request = urllib.request.Request(url, data=b'', method='PUT', headers={
+                  'Authorization': 'Bearer ' + os.environ['GH_TOKEN'],
+                  'Accept': 'application/vnd.github+json',
+                  'X-GitHub-Api-Version': '2022-11-28'
+              })
+              with urllib.request.urlopen(request, timeout=20) as response:
+                  if response.status != 204:
+                      raise RuntimeError('Unexpected workflow-disable response')
+              print('Price tracker retired; no shop requests or alerts made.')
+      - if: steps.lifecycle.outputs.active == 'true'
+        uses: actions/checkout@v4
+      - if: steps.lifecycle.outputs.active == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - if: steps.lifecycle.outputs.active == 'true'
+        run: npm ci
+      - if: steps.lifecycle.outputs.active == 'true'
+        run: npm test
+      - name: Load isolated price state
+        if: steps.lifecycle.outputs.active == 'true' && env.DRY_RUN != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin
+          if git show-ref --verify --quiet refs/remotes/origin/rx3-state; then
+            git worktree add .price-state rx3-state
+          else
+            git worktree add --detach .price-state
+            cd .price-state
+            git switch --orphan rx3-state
+            git -c user.name=price-monitor -c user.email=monitor@users.noreply.github.com commit --allow-empty -m 'Initialize price state'
+            git push origin HEAD:rx3-state
+            cd ..
+          fi
+          git -C .price-state config user.name price-monitor
+          git -C .price-state config user.email monitor@users.noreply.github.com
+      - name: Check shops
+        if: steps.lifecycle.outputs.active == 'true'
+        shell: bash
+        run: |
+          if [[ "$DRY_RUN" == "true" ]]; then
+            node dist/src/main.js --prices-dry-run
+          else
+            node dist/src/main.js --prices
+          fi
