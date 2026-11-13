@@ -91,15 +91,25 @@ export function parsePrice(html:string,config:Listing):Price|null{
  if(!recognized)throw new Error('Expected EUR price and stock markup missing');
  return eligible.sort((a,b)=>a.cents-b.cents)[0]??null;
 }
-export interface PriceState {version:1; lows:Partial<Record<Listing['kind'],number>>;pending:Price[];attempted:boolean;initialized:boolean}
+export interface PriceState {version:1; lows:Partial<Record<Listing['kind'],number>>;pending:Price[];attempted:boolean;initialized:boolean;listingLows?:Record<string,number>}
 export function freshDeals(state:PriceState,offers:Price[]):Price[]{
  const sorted=[...offers].sort((a,b)=>a.cents-b.cents);
  if(!state.initialized)return sorted;
- return sorted.filter(o=>o.cents<(state.lows[o.kind]??Infinity));
+ return sorted.filter(o=>o.cents<(state.listingLows ? (state.listingLows[o.id]??Infinity) : (state.lows[o.kind]??Infinity)));
 }
 const escape=(s:string)=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+export function shortlist(offers:Price[]):Price[]{
+ const sorted=[...offers].sort((a,b)=>a.cents-b.cents || a.id.localeCompare(b.id));
+ const standalone:Price[]=[];const seen=new Set<string>();
+ for(const offer of sorted){
+  if(offer.kind!=='standalone'||seen.has(offer.store))continue;
+  standalone.push(offer);seen.add(offer.store);
+  if(standalone.length===5)break;
+ }
+ return [...standalone,...sorted.filter(o=>o.kind==='case')];
+}
 export function priceMessage(offers:Price[]):string{
- return '🪩 <b>New XDJ-RX3 prices!</b> 💸\n\n'+offers.map(o=>`🔗 <b><a href="${escape(o.url)}">${escape(o.store)}</a></b>${o.label?' · '+escape(o.label):''}\n💰 ${new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'}).format(o.cents/100)}`).join('\n\n');
+ return '🪩 <b>New XDJ-RX3 prices!</b> 💸\n\n'+shortlist(offers).map(o=>`🔗 <b><a href="${escape(o.url)}">${escape(o.store)}</a></b>${o.label?' · '+escape(o.label):''}\n💰 ${new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'}).format(o.cents/100)}`).join('\n\n');
 }
 export async function scanPrices():Promise<Price[]>{
  const offers:Price[]=[];
@@ -126,17 +136,24 @@ export async function checkPrices(dry=false){
   let state:PriceState={version:1,lows:{},pending:[],attempted:false,initialized:false};
   try{state=JSON.parse(await readFile(join(store.dir,'rx3-state.json'),'utf8'));}catch(err:any){if(err.code!=='ENOENT')throw err;}
   if(state.version!==1||!state.lows||!Array.isArray(state.pending)||typeof state.initialized!=='boolean'||typeof state.attempted!=='boolean')throw new Error('Invalid price state');
+  if(state.listingLows && Object.values(state.listingLows).some(value=>!Number.isSafeInteger(value)||value<=0))throw new Error('Invalid listing price history');
   const offers=await scanPrices();
   if(state.attempted){console.warn('Earlier price alert delivery was uncertain; not resending.');state.pending=[];state.attempted=false;}
-  const deals=freshDeals(state,offers);
-  const pending=new Map(state.pending.filter(p=>offers.some(o=>o.id===p.id&&o.cents===p.cents)).map(p=>[p.id,p]));
+  const shown=shortlist(offers);
+  const visibleIds=new Set(shown.map(o=>o.id));
+  const deals=freshDeals(state,offers).filter(o=>visibleIds.has(o.id));
+  const pending=new Map(state.pending.filter(p=>shown.some(o=>o.id===p.id&&o.cents===p.cents)).map(p=>[p.id,p]));
   for(const d of deals)pending.set(d.id,d);
-  for(const o of offers)state.lows[o.kind]=Math.min(state.lows[o.kind]??Infinity,o.cents);
+  state.listingLows??={};
+  for(const o of offers){
+   state.lows[o.kind]=Math.min(state.lows[o.kind]??Infinity,o.cents);
+   state.listingLows[o.id]=Math.min(state.listingLows[o.id]??Infinity,o.cents);
+  }
   state.initialized ||= offers.length>0;
   state.pending=[...pending.values()].sort((a,b)=>a.cents-b.cents);
-  if(!state.pending.length){await store.saveDocument('rx3-state.json',state);console.log('No new price low.');return;}
+  if(!state.pending.length){await store.saveDocument('rx3-state.json',state);console.log('No new price low among shortlisted offers.');return;}
   state.attempted=true;await store.saveDocument('rx3-state.json',state);
-  try{await send(priceMessage(state.pending),'HTML','prices');}catch(err){
+  try{await send(priceMessage(offers),'HTML','prices');}catch(err){
    if(err instanceof Rejected){state.attempted=false;await store.saveDocument('rx3-state.json',state);}throw err;
   }
   state.pending=[];state.attempted=false;await store.saveDocument('rx3-state.json',state);

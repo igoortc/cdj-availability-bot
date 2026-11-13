@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {parsePrice,freshDeals,priceMessage,listings,type Price,type PriceState} from '../src/prices.js';
+import {parsePrice,freshDeals,priceMessage,shortlist,listings,type Price,type PriceState} from '../src/prices.js';
 import {expired,priceExpired} from '../src/lifecycle.js';
 const config=listings.find(l=>l.id==='recordcase')!;
 const base={'@type':'Offer',price:'1842.52',priceCurrency:'EUR',availability:'https://schema.org/InStock',itemCondition:'https://schema.org/NewCondition',url:config.url};
@@ -35,4 +35,22 @@ test('price alert compares separate historical lows and formats the total withou
 test('price tracking remains enabled after the calendar cutoff and stops at Berlin midnight December 1',()=>{
  const date=new Date('2026-11-30T22:59:59Z');
  assert(expired(date));assert(!priceExpired(date));assert(priceExpired(new Date('2026-11-30T23:00:00Z')));
+});
+
+test('a drop at a more expensive store triggers a roundup including the unchanged cheapest offer',()=>{
+ const unit=parsePrice(page(),config)!;
+ const old:PriceState={version:1,initialized:true,lows:{standalone:100000},pending:[],attempted:false,listingLows:{first:100000,second:200000}};
+ const first={...unit,id:'first',store:'Store 1',cents:100000};
+ const second={...unit,id:'second',store:'Store 2',cents:150000};
+ assert.deepEqual(freshDeals(old,[first,second]),[second]);
+ const message=priceMessage([second,first]);
+ assert(message.includes('Store 1') && message.includes('Store 2'));
+ assert(message.indexOf('Store 1')<message.indexOf('Store 2'));
+});
+test('roundup caps standalone offers at five distinct stores and appends bundles',()=>{
+ const base=parsePrice(page(),config)!;
+ const units=Array.from({length:7},(_,i)=>({...base,id:String(i),store:'Store '+i,cents:180000+i*1000}));
+ const duplicate={...units[0]!,id:'duplicate',cents:180500};
+ const bundle:Price={...base,id:'bundle',store:'Bag store',kind:'case',cents:179000};
+ assert.deepEqual(shortlist([bundle,...units.reverse(),duplicate]).map(o=>o.id),['0','1','2','3','4','bundle']);
 });
