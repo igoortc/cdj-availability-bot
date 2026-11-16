@@ -2,10 +2,19 @@
   "version": 1,
   "lows": {
     "standalone": 184252,
-    "case": 211500
+    "case": 207100
   },
-  "pending": [],
-  "attempted": false,
+  "pending": [
+    {
+      "id": "recordcase-flightcase",
+      "store": "Recordcase",
+      "url": "https://www.recordcase.de/pioneer-dj-xdj-rx3-pioneer-flightcase",
+      "kind": "case",
+      "cents": 207100,
+      "label": "Pioneer flight case"
+    }
+  ],
+  "attempted": true,
   "initialized": true,
   "listingLows": {
     "djtechnik": 184252,
@@ -20,6 +29,7 @@
     "elcotec": 209895,
     "soundium": 209900,
     "deejayhouse": 211500,
-    "deejayhouse-flightcase": 226500
+    "deejayhouse-flightcase": 226500,
+    "recordcase-flightcase": 207100
   }
 }
