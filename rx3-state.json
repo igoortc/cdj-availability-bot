@@ -4,17 +4,8 @@
     "standalone": 184252,
     "case": 207100
   },
-  "pending": [
-    {
-      "id": "recordcase-flightcase",
-      "store": "Recordcase",
-      "url": "https://www.recordcase.de/pioneer-dj-xdj-rx3-pioneer-flightcase",
-      "kind": "case",
-      "cents": 207100,
-      "label": "Pioneer flight case"
-    }
-  ],
-  "attempted": true,
+  "pending": [],
+  "attempted": false,
   "initialized": true,
   "listingLows": {
     "djtechnik": 184252,
